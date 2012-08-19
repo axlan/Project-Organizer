@@ -2,15 +2,28 @@ import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+
+import com.thoughtworks.xstream.XStream;
 
 
 public class Designer {
@@ -18,6 +31,8 @@ public class Designer {
 	private JFrame frame;
 	HashMap<String, Project> projectMap;
 
+	XStream xstream;
+	
 	/**
 	 * Launch the application.
 	 */
@@ -45,6 +60,8 @@ public class Designer {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		
+		xstream = new XStream();
 		
 		projectMap=new HashMap<String, Project>();
 
@@ -128,6 +145,50 @@ public class Designer {
 		gbc_tree.gridx = 0;
 		gbc_tree.gridy = 0;
 		frame.getContentPane().add(tree, gbc_tree);
+		
+		JMenuBar menuBar = new JMenuBar();
+		frame.setJMenuBar(menuBar);
+		
+		JMenu mnFile = new JMenu("File");
+		menuBar.add(mnFile);
+		
+		JMenuItem mntmSave = new JMenuItem("Save");
+		mntmSave.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String xml = xstream.toXML(projectMap);
+				try {
+					FileWriter f0 = new FileWriter("out.xml");
+					f0.write(xml);
+					f0.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+		});
+		mnFile.add(mntmSave);
+		
+		JMenuItem mntmLoad = new JMenuItem("Load");
+		mntmLoad.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				File f = new File("out.xml");
+			    FileInputStream fin;
+				try {
+					fin = new FileInputStream(f);
+				    byte[] buffer = new byte[(int) f.length()];
+				    new DataInputStream(fin).readFully(buffer);
+				    fin.close();
+				    String xml = new String(buffer, "UTF-8");
+					projectMap = (HashMap<String, Project>)xstream.fromXML(xml);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			   
+			}
+		});
+		mnFile.add(mntmLoad);
 		
 		
 	}
